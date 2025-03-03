@@ -1,0 +1,38 @@
+{
+    "manifest_version": 2,
+    "name": "AI Twitter Filter",
+    "author": "Liam Zebedee",
+    "description": "Use AI to filter your Twitter/X timeline",
+    "version": "1.0.1",
+    "browser_action": {
+      "default_popup": "assets/html/popup.html",
+      "default_icon": {
+        "16": "assets/img/icon-16.png",
+        "48": "assets/img/icon-48.png",
+        "128": "assets/img/icon-128.png"
+      }
+    },
+    "background": {
+      "scripts": [
+        "assets/js/browser-polyfill.min.js",
+        "assets/js/background.js"
+      ],
+      "persistent": true
+    },
+    "permissions": [
+      "activeTab",
+      "storage",
+      "tabs",
+      "https://api.openai.com/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["*://*.twitter.com/*", "*://*.x.com/*"],
+        "js": [
+          "assets/js/browser-polyfill.min.js",
+          "assets/js/content.js"
+        ],
+        "run_at": "document_start"
+      }
+    ]
+  }

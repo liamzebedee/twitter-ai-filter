@@ -8,6 +8,7 @@ let filters = {
   blockURL: [],
   hideUsername: false,
   blockUsername: [],
+  useAI: true
 };
 
 function matchWord(words, pattern) {
@@ -124,45 +125,108 @@ function matchUsername(usernames, pattern) {
   }
 }
 
-// Filter articles based on blockWords, blockURL, and blockUsername
-function filterArticles() {
+// Add this new function for batch processing
+async function analyzeTextsWithAI(texts) {
+  try {
+    // Make parallel API calls, 10 at a time
+    const batchResults = await Promise.all(
+      texts.map(text => 
+        browserAPI.runtime.sendMessage({
+          type: 'analyzeText',
+          text
+        })
+      )
+    );
+    return batchResults.map(r => r.shouldFilter);
+  } catch (error) {
+    console.error('CleansingX: Error in batch AI analysis:', error);
+    return texts.map(() => false);
+  }
+}
+
+// Modify filterArticles to use batch processing
+async function filterArticles() {
   try {
     const articles = document.getElementsByTagName('article');
     console.log('CleansingX: Found articles:', articles.length);
 
-    for (const article of articles) {
-      if (!article?.textContent) continue;
-      
-      let shouldHide = false;
+    // Prepare batches of 10 articles
+    const articleBatches = [];
+    const batchSize = 10;
+    
+    for (let i = 0; i < articles.length; i += batchSize) {
+      articleBatches.push(Array.from(articles).slice(i, i + batchSize));
+    }
 
-      // Word check
-      if (!shouldHide && filters.hideWords && filters.blockWords.length > 0) {
-        const words = Array.from(article.getElementsByTagName('span'))
+    // Process each batch
+    for (const batch of articleBatches) {
+      const textsToAnalyze = batch.map(article => 
+        Array.from(article.getElementsByTagName('span'))
           .map(el => el.textContent)
-          .join(' ');
+          .join(' ')
+      );
+
+      // First check regular filters
+      const shouldHideRegular = batch.map((article, i) => {
+        if (!article?.textContent) return false;
+        
+        // Word check
+        if (filters.hideWords && filters.blockWords.length > 0) {
+          const words = textsToAnalyze[i];
+          if (filters.blockWords.some(word => matchWord(words, word))) {
+            return true;
+          }
+        }
+
+        // URL check
+        if (filters.hideURL && filters.blockURL.length > 0) {
+          const urls = Array.from(article.getElementsByTagName('a'))
+            .map(el => (el.textContent || el.href).toLowerCase().trim())
+            .filter(text => text.length > 0);
           
-          shouldHide = shouldHide || filters.blockWords.some(word => matchWord(words, word));
-      }
+          if (filters.blockURL.some(user => matchURL(urls, user))) {
+            return true;
+          }
+        }
 
-      // Username check
-      if (filters.hideURL && filters.blockURL.length > 0) {
-        const urls = Array.from(article.getElementsByTagName('a'))
-          .map(el => (el.textContent || el.href).toLowerCase().trim())
-          .filter(text => text.length > 0);
-        
-          shouldHide = shouldHide || filters.blockURL.some(user => matchURL(urls, user));
-      }
+        // Username check
+        if (filters.hideUsername && filters.blockUsername.length > 0) {
+          const usernames = Array.from(article.getElementsByTagName('a'))
+            .map(el => (el.textContent || el.href).toLowerCase().trim())
+            .filter(text => text.length > 0);
+          
+          if (filters.blockUsername.some(user => matchUsername(usernames, user))) {
+            return true;
+          }
+        }
 
-      // Username check
-      if (filters.hideUsername && filters.blockUsername.length > 0) {
-        const usernames = Array.from(article.getElementsByTagName('a'))
-          .map(el => (el.textContent || el.href).toLowerCase().trim())
-          .filter(text => text.length > 0);
+        return false;
+      });
+
+      // Then check AI filter for articles that weren't already filtered
+      let aiResults = [];
+      if (filters.useAI) {
         
-          shouldHide = shouldHide || filters.blockUsername.some(user => matchUsername(usernames, user));
       }
-      
-      article.style.display = shouldHide ? 'none' : '';
+      const textsForAI = textsToAnalyze.filter((_, i) => !shouldHideRegular[i]);
+      console.log('CleansingX: Analysing with AI');
+      aiResults = await analyzeTextsWithAI(textsForAI);
+      console.log(aiResults)
+
+      // Apply visibility
+      let aiIndex = 0;
+      batch.forEach((article, i) => {
+        const shouldHide = shouldHideRegular[i] || !aiResults[aiIndex++];
+        
+        // article.style.display = shouldHide ? 'none' : '';
+        
+        // Don't change the display, just make content transparent
+        if (shouldHide) {
+          article.style.opacity = '0.35';
+        } else {
+          article.style.opacity = '1';
+        }
+      });
     }
   } catch (error) {
     console.error('CleansingX: Error in filterArticles:', error);
@@ -178,7 +242,8 @@ function updateFilters(message) {
       hideURL: [message.hideURL, 'hideURL'],
       blockURL: [message.blockURL, 'blockURL'],
       hideUsername: [message.hideUsername, 'hideUsername'],
-      blockUsername: [message.blockUsername, 'blockUsername']
+      blockUsername: [message.blockUsername, 'blockUsername'],
+      useAI: [message.useAI, 'useAI']
     };
 
     Object.entries(filterUpdates).forEach(([key, [value, logKey]]) => {
@@ -196,21 +261,27 @@ function updateFilters(message) {
 
 function initializeFilters() {
   try {
-    browserAPI.storage.local.get(['hideWords', 'blockWords', 'hideURL', 'blockURL', 'hideUsername', 'blockUsername'])
-      .then((result) => {
-        console.log('CleansingX: Storage result:', result);
-        filters.hideWords = result.hideWords || false;
-        filters.blockWords = result.savedBlockWords || [];
-        filters.hideURL = result.hideURL || false; 
-        filters.blockURL = result.blockURL || [];
-        filters.hideUsername = result.hideUsername || false;
-        filters.blockUsername = result.blockUsername || [];
-        console.log('CleansingX: Initial state:', filters);
+    browserAPI.storage.local.get([
+      'hideWords', 'blockWords', 
+      'hideURL', 'blockURL', 
+      'hideUsername', 'blockUsername',
+      'useAI'
+    ])
+    .then((result) => {
+      console.log('CleansingX: Storage result:', result);
+      filters.hideWords = result.hideWords || false;
+      filters.blockWords = result.savedBlockWords || [];
+      filters.hideURL = result.hideURL || false; 
+      filters.blockURL = result.blockURL || [];
+      filters.hideUsername = result.hideUsername || false;
+      filters.blockUsername = result.blockUsername || [];
+      filters.useAI = result.useAI || false;
+      console.log('CleansingX: Initial state:', filters);
 
-        if (filters.hideWords) {
-          debouncedFilterArticles();
-        }
-      });
+      if (filters.hideWords || filters.useAI) {
+        debouncedFilterArticles();
+      }
+    });
   } catch (error) {
     console.error('CleansingX: Error in initializeFilters:', error);
   }
@@ -240,7 +311,11 @@ function startObserver() {
 }
 
 // Create debounced version of filterArticles
-const debouncedFilterArticles = debounce(filterArticles, 100);
+const debouncedFilterArticles = debounce(() => {
+  filterArticles().catch(error => {
+    console.error('CleansingX: Error in debouncedFilterArticles:', error);
+  });
+}, 100);
 
 // Update observer to use debounced function
 const observer = new MutationObserver((mutations) => {

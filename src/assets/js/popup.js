@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkboxes = {
     hideWords: document.getElementById('hideWords'),
     hideURL: document.getElementById('hideURL'),
-    hideUsername: document.getElementById('hideUsername')
+    hideUsername: document.getElementById('hideUsername'),
+    useAI: document.getElementById('useAI')
   };
 
   const inputs = {
@@ -19,12 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load saved state
   browserAPI.storage.local.get([
     'hideWords', 'hideURL', 'hideUsername', 
-    'blockWords', 'blockURL', 'blockUsername', 'darkTheme'
+    'blockWords', 'blockURL', 'blockUsername', 
+    'darkTheme', 'useAI'
   ]).then((result) => {
     // Set checkbox states
     checkboxes.hideWords.checked = result.hideWords || false;
     checkboxes.hideURL.checked = result.hideURL || false;
     checkboxes.hideUsername.checked = result.hideUsername || false;
+    checkboxes.useAI.checked = result.useAI || false;
 
     // Set input values
     inputs.blockWords.value = (result.blockWords || []).join(',');

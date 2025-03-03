@@ -1,51 +1,55 @@
-# CleansingX: Twitter X Filter
+# ai-twitter-filter
 
-## Introduction
+## Setup.
 
-CleansingX is a Firefox extension that helps filter and hide unwanted content on [X.com](https://x.com) (formerly Twitter) to enhance your browsing experience.
+```sh
+# 1. Setup environment.
+cp .env.example .env
 
-## Features
+# 2. Modify .env, add your OPENAI API KEY
 
-- **Word Filtering**: Hide posts containing specific words or phrases
-- **URL Filtering**: Block content from specific domains or URLs
-- **Username Filtering**: Hide posts from specific usernames
-- **Wildcard Support**: Use * for flexible pattern matching
-- **Dark/Light Theme**: Toggle between dark and light interface modes
-- **Real-time Filtering**: Updates content filtering as you scroll
-- **Persistent Settings**: Your filters and preferences are saved across sessions
+# 3. Install deps.
+npm i
 
-## Download
+# 4. Build.
+npm run watch:firefox
 
-CleansingX is available as a browser extension on the official stores: 
+# 5. Install on Firefox.
+# 5a. open about:debugging > This firefox > Load temp addon
+# 5b. navigate to the project dist/ folder
+# 5c. select the dist/manifest.json file.
+# See: https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/
+```
 
-<a href="https://addons.mozilla.org/firefox/addon/cleansingx"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" alt="Get it on Firefox" height="50"/></a>
-<a href="https://chromewebstore.google.com/detail/cleansingx/ckacocgddaaajndbgkokdoficdhjjcmk"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" alt="Get it on Chrome" height="50"/></a>
 
-## Installation
+## Licensing.
 
-1. Go to the download link.
-2. Click on **Add** to install the extension.
-3. A popup will appear. Click **Add** to confirm and complete the installation.
+Project and contributions are MIT.
 
-## Usage
+### CleansingX.
 
-1. Click the CleansingX icon in your browser toolbar
-2. Use the tabs to navigate between:
-   - **Home**: Quick enable/disable filters
-   - **Settings**: Configure filter rules
-   - **Info**: View extension information and support
+Forked from CleansingX. 
 
-### Adding Filters
+```
+MIT License
 
-- **Words**: Enter comma-separated words or phrases to block
-- **URLs**: Enter comma-separated domain names (e.g., example.com)
-- **Usernames**: Enter comma-separated usernames with @ prefix
+Copyright (c) 2024 A Muh Mufqi Zuhudi
 
-### Wildcard Patterns
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-- `word*` - Matches anything starting with "word"
-- `*word` - Matches anything ending with "word"
-- `*word*` - Matches anything containing "word"
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Contact
-For any inquiries or feedback, you can reach me at moefqy@rocketmail.com.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

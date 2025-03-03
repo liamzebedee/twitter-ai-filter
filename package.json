@@ -1,0 +1,15 @@
+{
+  "name": "ai-twitter-filter",
+  "private": true,
+  "scripts": {
+    "build:firefox": "rm -rf build/ && parcel build src/manifest.json --dist-dir build/ --no-content-hash --config @parcel/config-webextension",
+    "watch:firefox": "parcel watch src/manifest.json --host localhost --no-cache --no-content-hash --config @parcel/config-webextension"
+  },
+  "dependencies": {
+    "@parcel/config-webextension": "^2.13.3",
+    "openai": "^4.86.1"
+  },
+  "devDependencies": {
+    "parcel": "^2.13.3"
+  }
+}
