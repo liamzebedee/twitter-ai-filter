@@ -1,5 +1,7 @@
 # ai-twitter-filter
 
+Browser extension that live filters the timeline's tweets using Artificial General Intelligence.
+
 ## Setup.
 
 ```sh
@@ -21,6 +23,11 @@ npm run watch:firefox
 # See: https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/
 ```
 
+Now load https://x.com, the everything app.
+
+Tweets are sent to GPT-4 and filtered through the prompt in `prompt.js`.
+
+`content.js` dims tweets that don't pass the AI filter.
 
 ## Licensing.
 
